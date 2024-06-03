@@ -31,9 +31,12 @@ const StoreContextProvider = (props) => {
     return totalAmount;
   };
 
+  //preventing logout while refresh the page
   useEffect(() => {
-    console.log(cartItems);
-  }, [cartItems]);
+    if (localStorage.getItem("token")) {
+      setToken(localStorage.getItem("token"));
+    }
+  }, []);
 
   const contextValue = {
     food_list,

@@ -9,16 +9,40 @@ const StoreContextProvider = (props) => {
   const [token, setToken] = useState("");
   const [food_list, setFoodList] = useState([]);
 
-  const addToCart = (itemId) => {
+  const addToCart = async (itemId) => {
     if (!cartItems[itemId]) {
       setCartItems((prev) => ({ ...prev, [itemId]: 1 }));
     } else {
       setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] + 1 }));
     }
+    if (token) {
+      //sending the token in headers. So that, when `/api/cart/add` this api called, auth middleware will be executed and the token will be verified and the userId will be decoded
+      await axios.post(
+        url + "api/cart/add",
+        { itemId },
+        { headers: { token } }
+      );
+    }
   };
 
-  const removeFromCart = (itemId) => {
+  const removeFromCart = async (itemId) => {
     setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] - 1 }));
+    if (token) {
+      await axios.post(
+        url + "api/cart/remove",
+        { itemId },
+        { headers: { token } }
+      );
+    }
+  };
+
+  const loadCartData = async (token) => {
+    const response = await axios.post(
+      url + "api/cart/get",
+      {},
+      { headers: { token } }
+    );
+    setCartItems(response.data.cartData);
   };
 
   const getTotalCartAmount = () => {
@@ -43,6 +67,7 @@ const StoreContextProvider = (props) => {
       await fetchFoodList();
       if (localStorage.getItem("token")) {
         setToken(localStorage.getItem("token"));
+        await loadCartData(localStorage.getItem("token"));
       }
     }
     loadData();
